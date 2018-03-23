@@ -1,0 +1,28 @@
+{
+  "name": "es6-starter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "babel-node": "babel-node --presets=env",
+    "start": "nodemon --exec npm run  babel-node ./src/index.js --inspect",
+    "build": "rm -rf dist/ && npm run build:src",
+    "build:src": "babel src/ --out-dir=dist --source-maps",
+    "watch": "npm run build:src --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "nodemon": "^1.17.2"
+  },
+  "babel": {
+    "presets": ["env"],
+    "plugins": ["transform-runtime", "transform-object-rest-spread"],
+    "sourceMaps": true,
+    "retainLines": true
+  }
+}
