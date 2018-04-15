@@ -1,4 +1,7 @@
 import * as utils from "./utils";
+import { getYear } from "date-fns";
+import { quantile } from "simple-statistics";
+
 /**
  * Base class for single Stations, get's instatiated when monitoring data is downloaded.
  * @class Station
@@ -15,6 +18,7 @@ export default class Station {
     this.info = info;
     this.data = this.initData(data);
     this.meta = this.initMeta();
+    this.processed = { raw: [...this.data] };
   }
   /**
    * Validates and simplifies server response from **sitevisits** query
@@ -44,19 +48,95 @@ export default class Station {
       };
     });
   }
+  /**
+   * sets meta data like totalYearRange, params etc
+   *
+   * @returns {Object} meta data {totalYearRange, params}
+   * @memberof Station
+   */
   initMeta() {
     let totalYearRange = utils.totalYearRange(this.data);
     let params = utils.getParams(this.data);
-    let range = utils.getDataForYearRange(this.data, {
-      startYear: 2014,
-      endYear: 2015
-    });
 
-    // let dataPointsPerParam = utils.dataPointsPerParam(
-    //   this.data,
-    //   totalYearRange
-    // );
-    return { totalYearRange, params };
+    return {
+      totalYearRange,
+      params
+    };
+  }
+
+  /**
+   * just sets this.processed back to inital data from server
+   *
+   * @memberof Station
+   */
+  resetData() {
+    // NOTE: Don't need any more???
+    this.processed = {
+      ...this.data
+    };
+  }
+  /**
+   * only returns data between **startYear** and **endYear** |
+   * **adds data property to this.processed** |
+   * ** data property is in SiteVisit format** |
+   * @param {YearRange} yearRange  {startYear: number, endYear: number}
+   * @returns {Object} this - for chaining
+   */
+  setYearRange(yearRange) {
+    let { startYear, endYear } = yearRange;
+    let processed = this.processed.raw.filter(d => {
+      if (getYear(d.date) >= startYear && getYear(d.date) <= endYear) {
+        return true;
+      }
+    });
+    this.processed = { ...this.processed, startYear, endYear, data: processed };
+    return this; // Necessary for chaining
+  }
+  /**
+   * Only returns data from the **param** paramater |
+   * ** data property is now in [dateStr, mean value] format** |
+   *
+   * @param {string} param - i.e H2O_Temp, H2O_Cond
+   * @memberof Station
+   */
+  setParam(param) {
+    let byParam = this.processed.data.map(d => {
+      // console.log("d", d);
+      return [d.date, d.results[param]];
+    });
+    this.processed = { ...this.processed, param, data: byParam };
+    return this;
+  }
+  /**
+   * creates Array of [min,q25,q5,q75,max] for boxplots by station
+   *
+   * @returns  {Array} [min,q25,q5,q75,max]
+   * @memberof Station
+   */
+  boxPlotPerStation() {
+    let valuesOnly = this.processed.data.map(d => d[1]);
+    this.processed.data = [
+      Math.min(...valuesOnly),
+      quantile(valuesOnly, 0.25),
+      quantile(valuesOnly, 0.5),
+      quantile(valuesOnly, 0.75),
+      Math.max(...valuesOnly)
+    ];
+    return this;
+  }
+  /**
+   * rounds all numbers to 'precision', returns null for null
+   *
+   * @param {number} precision - precision of return, i.e 1 => 12.1
+   * @returns {Object} this
+   * @memberof Station
+   */
+  roundTo(precision) {
+    let temp = this.processed.data.map(d => {
+      return [d[0], utils.precisionRound(d[1], precision)];
+    });
+    this.processed.data = temp;
+    return this;
   }
 }
 
