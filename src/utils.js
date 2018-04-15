@@ -1,5 +1,5 @@
-import { getYear } from "date-fns";
-import { uniq } from "lodash";
+import { getYear, getMonth } from "date-fns";
+import { uniq, cloneDeep, sortBy } from "lodash";
 /** @namespace utils */
 
 /**
@@ -47,4 +47,35 @@ export function precisionRound(number, precision) {
   if (!number) return null;
   var factor = Math.pow(10, precision);
   return Math.round(number * factor) / factor;
+}
+
+/**
+ * fills in months that don't have any data with null so that charts show gaps
+ *
+ * @export nullBuffer
+ * @param {Array} data
+ * @returns {Array} array of StationVisits
+ */
+export function nullBuffer(data) {
+  let startYear = getYear(data[0][0]);
+  let endYear = getYear(data[data.length - 1][0]);
+  for (let year = startYear; year <= endYear; year++) {
+    for (let month = 0; month <= 11; month++) {
+      let valueExists = data.some((e, index) => {
+        let m = getMonth(e[0]);
+        let y = getYear(e[0]);
+        if (m === month && y === year) {
+          return true;
+        }
+      });
+      if (!valueExists) {
+        let monthStr = (month + 1).toString();
+        if (month < 9) {
+          monthStr = "0" + monthStr;
+        }
+        data.push([year.toString() + "-" + monthStr + "-01", null]);
+      }
+    }
+  }
+  return sortBy(data, o => o[0]);
 }

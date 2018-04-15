@@ -132,10 +132,21 @@ export default class Station {
    * @memberof Station
    */
   roundTo(precision) {
-    let temp = this.processed.data.map(d => {
+    this.processed.data = this.processed.data.map(d => {
       return [d[0], utils.precisionRound(d[1], precision)];
     });
-    this.processed.data = temp;
+    return this;
+  }
+
+  /**
+   * adds in null data for months that don't have any data so that the graph shows a gap!
+   * adds them in this.processed.data
+   *
+   * @returns {Object} this
+   * @memberof Station
+   */
+  bufferData() {
+    this.processed.data = utils.nullBuffer(this.processed.data);
     return this;
   }
 }
