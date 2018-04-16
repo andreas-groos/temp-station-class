@@ -4,7 +4,6 @@ import Station from "./Station";
 import { getParams } from "./utils";
 
 let someStation = new Station(stations[2], loadedStations[2].data);
-// one.setYearRange({ startYear: 2014, endYear: 2014 });
 console.log("Station.info.StationName : ", someStation.info.StationName);
 console.time("basic");
 someStation
@@ -41,6 +40,26 @@ someStation
   .setParam("H2O_pH")
   .roundTo(2)
   .bufferData()
-  .boxPlotPerStation();
+  .boxPlot();
 console.log(someStation.processed.data);
 console.timeEnd("boxPlotByStation");
+
+console.log("------------------");
+console.time("linePlot");
+someStation
+  .setYearRange({ startYear: 2014, endYear: 2014 })
+  .setParam("H2O_pH")
+  .bufferData()
+  .linePlot();
+console.log(someStation.processed.data);
+console.timeEnd("linePlot");
+
+console.log("------------------");
+console.time("linePlotByMonth");
+someStation
+  .setYearRange({ startYear: 2012, endYear: 2014 })
+  .setParam("H2O_pH")
+  .bufferData()
+  .linePlotByMonth();
+console.log(someStation.processed.data);
+console.timeEnd("linePlotByMonth");

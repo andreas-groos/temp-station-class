@@ -19,7 +19,7 @@ export default class Station {
     this.data = this.initData(data);
     this.meta = this.initMeta();
     this.processed = {
-      raw: [...this.data]
+      // raw: [...this.data]
     };
   }
   /**
@@ -65,18 +65,6 @@ export default class Station {
       params
     };
   }
-
-  /**
-   * just sets this.processed back to inital data from server
-   *
-   * @memberof Station
-   */
-  resetData() {
-    // NOTE: Don't need any more???
-    this.processed = {
-      ...this.data
-    };
-  }
   /**
    * only returns data between **startYear** and **endYear** |
    * uses the whole dataset from the server, should be first method used on Station |
@@ -87,7 +75,7 @@ export default class Station {
    */
   setYearRange(yearRange) {
     let { startYear, endYear } = yearRange;
-    let processed = this.processed.raw.filter(d => {
+    let processed = this.data.filter(d => {
       if (getYear(d.date) >= startYear && getYear(d.date) <= endYear) {
         return true;
       }
@@ -109,7 +97,6 @@ export default class Station {
    */
   setParam(param) {
     let byParam = this.processed.data.map(d => {
-      // console.log("d", d);
       return [d.date, d.results[param]];
     });
     this.processed = {
@@ -149,7 +136,7 @@ export default class Station {
    * @returns  {Array} [min,q25,q5,q75,max]
    * @memberof Station
    */
-  boxPlotPerStation() {
+  boxPlot() {
     let valuesOnly = [];
     this.processed.data.map(d => {
       if (d[1]) {
@@ -182,6 +169,40 @@ export default class Station {
         quantile(valuesOnly, 0.75),
         Math.max(...valuesOnly)
       ];
+    });
+    return this;
+  }
+
+  /**
+   * preps data for linePlot, turns 'YYYY-MM-DD' into UTC milliseconds
+   *
+   * @returns {Array[]} [[date,value],[date,value],....]
+   * @memberof Station
+   */
+  linePlot() {
+    this.processed.data = this.processed.data.map(d => {
+      let dateArr = d[0].split("-");
+      d[0] = Date.UTC(dateArr[0], dateArr[1], dateArr[2]);
+      return d;
+    });
+    return this;
+  }
+  /**
+   * this.processed.data in now Array of 12 with all the Jan,Feb data
+   *
+   * @returns {Array[]}
+   * @memberof Station
+   */
+  linePlotByMonth() {
+    // NOTE: this might be better as a scatter plot
+    let byMonth = utils.splitByMonth(this.processed.data);
+    this.processed.data = byMonth.map(m => {
+      m.map = m.map(d => {
+        let dateArr = d[0].split("-");
+        d[0] = Date.UTC(dateArr[0], dateArr[1], dateArr[2]);
+        return d;
+      });
+      return m;
     });
     return this;
   }
