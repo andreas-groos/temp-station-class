@@ -21,6 +21,7 @@
     "babel-runtime": "^6.26.0",
     "date-fns": "^1.29.0",
     "jsdoc": "^3.5.5",
+    "json2csv": "^4.1.1",
     "lodash": "^4.17.5",
     "nodemon": "^1.17.2",
     "simple-statistics": "^5.3.1"

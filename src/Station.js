@@ -1,7 +1,7 @@
 import * as utils from "./utils";
 import { getYear, getMonth } from "date-fns";
 import { quantile } from "simple-statistics";
-
+import json2csv from "json2csv";
 /**
  * Base class for single Stations, get's instatiated when monitoring data is downloaded.
  * @class Station
@@ -87,6 +87,30 @@ export default class Station {
       data: processed
     };
     return this; // Necessary for chaining
+  }
+  /**
+   * fills this.process.data with csv result.
+   * By default doesn't include notes but with (true) can be included
+   *
+   * @param {boolean} [notes=false]
+   * @returns this
+   * @memberof Station
+   */
+  getCSV(notes = false) {
+    let data = [];
+    this.processed.data.map(d => {
+      let temp = { date: d.date, ...d.results };
+      if (notes) {
+        temp.notes = d.notes ? d.notes : "";
+      }
+      data.push(temp);
+    });
+    let fields = [...this.meta.params];
+    if (notes) {
+      fields.push("notes");
+    }
+    this.processed.data = json2csv.parse(data, fields);
+    return this;
   }
   /**
    * Only returns data from the **param** paramater |
