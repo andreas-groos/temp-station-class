@@ -1,6 +1,5 @@
 import { getYear, getMonth } from "date-fns";
 import { uniq, cloneDeep, sortBy } from "lodash";
-/** @namespace utils */
 
 /**
  * returns startYear and endYear of stationvisits []
@@ -78,4 +77,23 @@ export function nullBuffer(data) {
     }
   }
   return sortBy(data, o => o[0]);
+}
+
+/**
+ * splits data up in Array of 12 by month
+ *
+ * @export splitByMonth
+ * @param {Array} data  array of ['YYYY-MM-DD',number]
+ * @param {boolean} [removeNulls=false] if true removes all null values, **defaults to false**
+ * @returns {Array[]} array of 12 split by month
+ */
+export function splitByMonth(data, removeNulls = false) {
+  let arr = new Array(12).fill([]);
+  data.map(d => {
+    if ((removeNulls && d[1]) || !removeNulls) {
+      let month = getMonth(d[0]);
+      arr[month] = arr[month].concat([d]);
+    }
+  });
+  return arr;
 }

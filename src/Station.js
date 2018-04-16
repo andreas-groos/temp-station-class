@@ -1,5 +1,5 @@
 import * as utils from "./utils";
-import { getYear } from "date-fns";
+import { getYear, getMonth } from "date-fns";
 import { quantile } from "simple-statistics";
 
 /**
@@ -18,7 +18,9 @@ export default class Station {
     this.info = info;
     this.data = this.initData(data);
     this.meta = this.initMeta();
-    this.processed = { raw: [...this.data] };
+    this.processed = {
+      raw: [...this.data]
+    };
   }
   /**
    * Validates and simplifies server response from **sitevisits** query
@@ -77,6 +79,7 @@ export default class Station {
   }
   /**
    * only returns data between **startYear** and **endYear** |
+   * uses the whole dataset from the server, should be first method used on Station |
    * **adds data property to this.processed** |
    * ** data property is in SiteVisit format** |
    * @param {YearRange} yearRange  {startYear: number, endYear: number}
@@ -89,7 +92,12 @@ export default class Station {
         return true;
       }
     });
-    this.processed = { ...this.processed, startYear, endYear, data: processed };
+    this.processed = {
+      ...this.processed,
+      startYear,
+      endYear,
+      data: processed
+    };
     return this; // Necessary for chaining
   }
   /**
@@ -104,24 +112,11 @@ export default class Station {
       // console.log("d", d);
       return [d.date, d.results[param]];
     });
-    this.processed = { ...this.processed, param, data: byParam };
-    return this;
-  }
-  /**
-   * creates Array of [min,q25,q5,q75,max] for boxplots by station
-   *
-   * @returns  {Array} [min,q25,q5,q75,max]
-   * @memberof Station
-   */
-  boxPlotPerStation() {
-    let valuesOnly = this.processed.data.map(d => d[1]);
-    this.processed.data = [
-      Math.min(...valuesOnly),
-      quantile(valuesOnly, 0.25),
-      quantile(valuesOnly, 0.5),
-      quantile(valuesOnly, 0.75),
-      Math.max(...valuesOnly)
-    ];
+    this.processed = {
+      ...this.processed,
+      param,
+      data: byParam
+    };
     return this;
   }
   /**
@@ -137,7 +132,6 @@ export default class Station {
     });
     return this;
   }
-
   /**
    * adds in null data for months that don't have any data so that the graph shows a gap!
    * adds them in this.processed.data
@@ -147,6 +141,48 @@ export default class Station {
    */
   bufferData() {
     this.processed.data = utils.nullBuffer(this.processed.data);
+    return this;
+  }
+  /**
+   * creates Array of [min,q25,q5,q75,max] for boxplots by station
+   *
+   * @returns  {Array} [min,q25,q5,q75,max]
+   * @memberof Station
+   */
+  boxPlotPerStation() {
+    let valuesOnly = [];
+    this.processed.data.map(d => {
+      if (d[1]) {
+        valuesOnly.push(d[1]);
+      }
+    });
+    this.processed.data = [
+      Math.min(...valuesOnly),
+      quantile(valuesOnly, 0.25),
+      quantile(valuesOnly, 0.5),
+      quantile(valuesOnly, 0.75),
+      Math.max(...valuesOnly)
+    ];
+    return this;
+  }
+  /**
+   * creates Array of 12 Arrays of [min,q25,q5,q75,max] for a boxplot by month for a single station
+   *
+   * @returns  {Array[]} [[min,q25,q5,q75,max],[...],[...]]
+   * @memberof Station
+   */
+  boxPlotPerMonth() {
+    let byMonth = utils.splitByMonth(this.processed.data, true);
+    this.processed.data = byMonth.map(d => {
+      let valuesOnly = d.map(v => v[1]);
+      return [
+        Math.min(...valuesOnly),
+        quantile(valuesOnly, 0.25),
+        quantile(valuesOnly, 0.5),
+        quantile(valuesOnly, 0.75),
+        Math.max(...valuesOnly)
+      ];
+    });
     return this;
   }
 }
