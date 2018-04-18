@@ -37,10 +37,11 @@ export function getDataPointsPerParam(data) {
 /**
  * rounds number to precision, '-1' rounds 1234 to 1230, '2' rounds 1234.1234 to 1234.12
  *
- * @export
+ * @export precisionRound
  * @param {number} number number to round
  * @param {number} precision precision of rounding, can be postive or negative
  * @returns {number} the rounded number
+ * @example precisionRound(2014.2,-1) = 2010
  */
 export function precisionRound(number, precision) {
   if (!number) return null;

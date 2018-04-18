@@ -1,7 +1,8 @@
 {
-  "name": "es6-starter",
-  "version": "1.0.0",
-  "description": "",
+  "name": "Station_Class",
+  "version": "0.5.0",
+  "description":
+    "utility functions and the Station Class to keep as much logic as possible out of frontend code.",
   "main": "index.js",
   "scripts": {
     "test": "jest --watchAll",
@@ -10,7 +11,10 @@
     "build": "rm -rf dist/ && npm run build:src",
     "build:src": "babel src/ --out-dir=dist --source-maps",
     "watch": "npm run build:src --watch",
-    "create-docs": "rm -rf ./docs && node_modules/.bin/jsdoc -r --configure jsdoc.config.json --destination ./docs ./README.md "
+    "create-docs":
+      "rm -rf ./docs && node_modules/.bin/jsdoc -r --configure jsdoc.config.json --destination ./docs ./README.md ",
+    "create-doxs":
+      "doxdox './**/*.js' --layout bootstrap --output doxs/index.html"
   },
   "author": "",
   "license": "ISC",
@@ -27,13 +31,8 @@
     "simple-statistics": "^5.3.1"
   },
   "babel": {
-    "presets": [
-      "env"
-    ],
-    "plugins": [
-      "transform-runtime",
-      "syntax-object-rest-spread"
-    ],
+    "presets": ["env"],
+    "plugins": ["transform-runtime", "syntax-object-rest-spread"],
     "sourceMaps": true,
     "retainLines": true
   },
